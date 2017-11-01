@@ -38,7 +38,7 @@ class TrainingSet:
             assert hdr_image.dtype == 'float32'
             assert ldr_image.shape == hdr_image.shape
 
-            ldr_image /= 65535.0
+            ldr_image = ldr_image / 65535.0
 
             x_start = 0
 
