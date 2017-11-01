@@ -78,7 +78,7 @@ with tf.Session() as session:
 
         current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** (epoch // params['learning_rate_decay_step'])
 
-        feed_dict = {input: x, ground_truth: y, learning_rate: current_learning_rate}
+        feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
 
         if batch * params['batch_size'] % train_set.length == 0:
             print('Processing epoch #%d...' % (epoch + 1))
