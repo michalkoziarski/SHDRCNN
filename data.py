@@ -31,10 +31,14 @@ class TrainingSet:
 
             ldr_path = os.path.join(image_directory, tif_names[1])
             hdr_path = os.path.join(image_directory, 'HDRImg.hdr')
-            ldr_image = imageio.imread(ldr_path) / 65535.0
+            ldr_image = imageio.imread(ldr_path)
             hdr_image = imageio.imread(hdr_path)
 
+            assert ldr_image.dtype == 'uint16'
+            assert hdr_image.dtype == 'float32'
             assert ldr_image.shape == hdr_image.shape
+
+            ldr_image /= 65535.0
 
             x_start = 0
 
