@@ -3,6 +3,7 @@ import zipfile
 import imageio
 import numpy as np
 
+from skimage.color import rgb2gray
 from urllib.request import urlretrieve
 
 
@@ -39,6 +40,9 @@ class TrainingSet:
             assert ldr_image.shape == hdr_image.shape
 
             ldr_image = ldr_image / 65535.0
+
+            ldr_image = np.expand_dims(rgb2gray(ldr_image), axis=2)
+            hdr_image = np.expand_dims(rgb2gray(hdr_image), axis=2)
 
             x_start = 0
 

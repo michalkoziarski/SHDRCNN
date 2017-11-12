@@ -7,6 +7,8 @@ import imageio
 import numpy as np
 import tensorflow as tf
 
+from skimage.color import rgb2gray
+
 
 def load_model(session):
     checkpoint_path = os.path.join(os.path.dirname(__file__), 'model')
@@ -40,9 +42,12 @@ def predict(images, session=None, network=None, targets=None):
         psnr = []
 
     for i in range(len(images)):
-        image = images[i]
+        image = images[i].copy()
 
         assert image.dtype == 'float32'
+
+        if len(image.shape) == 3:
+            image = np.expand_dims(rgb2gray(image), axis=2)
 
         prediction = network.outputs.eval(feed_dict={network.inputs: np.array([image])}, session=session)[0]
 

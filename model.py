@@ -14,12 +14,12 @@ class Model:
 
         for i in range(self.n_layers):
             if i == 0:
-                in_shape = 3
+                in_shape = 1
             else:
                 in_shape = self.n_filters
 
             if i == self.n_layers - 1:
-                out_shape = 3
+                out_shape = 1
             else:
                 out_shape = self.n_filters
 
