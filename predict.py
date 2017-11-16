@@ -44,7 +44,12 @@ def predict(images, session=None, network=None, targets=None):
     for i in range(len(images)):
         image = images[i].copy()
 
-        assert image.dtype == 'float32'
+        assert str(image.dtype).startswith('float') or str(image.dtype).startswith('uint')
+
+        if image.dtype == 'uint8':
+            image = image / 255.0
+        elif image.dtype == 'uint16':
+            image = image / 65535.0
 
         if len(image.shape) == 3:
             image = np.expand_dims(rgb2gray(image), axis=2)
@@ -52,9 +57,14 @@ def predict(images, session=None, network=None, targets=None):
         prediction = network.outputs.eval(feed_dict={network.inputs: np.array([image])}, session=session)[0]
 
         if targets is not None:
-            target = targets[i]
+            target = targets[i].copy()
 
-            assert target.dtype == 'float32'
+            assert str(target.dtype).startswith('float') or str(target.dtype).startswith('uint')
+
+            if target.dtype == 'uint8':
+                target = target / 255.0
+            elif target.dtype == 'uint16':
+                target = target / 65535.0
 
             psnr.append(utils.psnr(prediction, target, maximum=1.0))
 
