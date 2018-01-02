@@ -3,6 +3,7 @@ import model
 import os
 import json
 import logging
+import numpy as np
 import tensorflow as tf
 
 from tqdm import tqdm
@@ -73,8 +74,8 @@ with tf.Session() as session:
     logging.info('Training model...')
 
     batches_processed = tf.train.global_step(session, global_step)
-    epochs_processed = batches_processed * params['batch_size'] / train_set.length
-    batches_per_epoch = int(train_set.length / train_set.batch_size)
+    epochs_processed = int(batches_processed * params['batch_size'] / train_set.length)
+    batches_per_epoch = int(np.ceil(train_set.length / train_set.batch_size))
 
     for epoch in range(epochs_processed, params['epochs']):
         logging.info('Processing epoch #%d...' % (epoch + 1))
