@@ -35,11 +35,8 @@ for i in range(len(network.weights)):
 summary_step = tf.summary.merge_all()
 saver = tf.train.Saver(max_to_keep=0)
 
-optimizer = tf.train.AdamOptimizer(learning_rate)
-gradients = optimizer.compute_gradients(loss)
-clip_value = params['gradient_clipping'] / learning_rate
-capped_gradients = [(tf.clip_by_value(grad, -clip_value, clip_value), var) for grad, var in gradients]
-train_step = optimizer.apply_gradients(capped_gradients, global_step=global_step)
+optimizer = tf.train.AdamOptimizer(params['learning_rate'])
+train_step = optimizer.minimize(loss, global_step=global_step)
 
 checkpoint_path = os.path.join(os.path.dirname(__file__), 'model')
 model_path = os.path.join(checkpoint_path, 'model.ckpt')
