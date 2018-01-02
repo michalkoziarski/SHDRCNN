@@ -25,13 +25,13 @@ base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(network.outputs, ground_trut
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
 
-tf.summary.scalar('base loss', base_loss)
-tf.summary.scalar('weight loss', weight_loss)
-tf.summary.scalar('total loss', loss)
-tf.summary.scalar('learning rate', learning_rate)
+tf.summary.scalar('base_loss', base_loss)
+tf.summary.scalar('weight_loss', weight_loss)
+tf.summary.scalar('total_loss', loss)
+tf.summary.scalar('learning_rate', learning_rate)
 tf.summary.image('inputs', inputs)
 tf.summary.image('outputs', network.outputs)
-tf.summary.image('ground truth', ground_truth)
+tf.summary.image('ground_truth', ground_truth)
 tf.summary.image('residual', network.residual)
 
 for i in range(len(network.weights)):
