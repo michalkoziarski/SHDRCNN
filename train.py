@@ -34,8 +34,8 @@ tf.summary.image('ground truth', ground_truth)
 tf.summary.image('residual', network.residual)
 
 for i in range(len(network.weights)):
-    tf.summary.histogram('weights/layer #%d' % (i + 1), network.weights[i])
-    tf.summary.histogram('biases/layer #%d' % (i + 1), network.biases[i])
+    tf.summary.histogram('weights/layer_%d' % (i + 1), network.weights[i])
+    tf.summary.histogram('biases/layer_%d' % (i + 1), network.biases[i])
 
 summary_step = tf.summary.merge_all()
 saver = tf.train.Saver(max_to_keep=0)
