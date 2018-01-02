@@ -5,6 +5,10 @@ import json
 import logging
 import tensorflow as tf
 
+from tqdm import tqdm
+
+
+logging.basicConfig(level=logging.INFO)
 
 with open(os.path.join(os.path.dirname(__file__), 'params.json')) as f:
     params = json.load(f)
@@ -68,23 +72,26 @@ with tf.Session() as session:
 
     logging.info('Training model...')
 
-    while tf.train.global_step(session, global_step) * params['batch_size'] < train_set.length * params['epochs']:
-        batch = tf.train.global_step(session, global_step)
-        epoch = batch * params['batch_size'] / train_set.length
+    batches_processed = tf.train.global_step(session, global_step)
+    epochs_processed = batches_processed * params['batch_size'] / train_set.length
+    batches_per_epoch = int(train_set.length / train_set.batch_size)
 
-        x, y = train_set.batch()
+    for epoch in range(epochs_processed, params['epochs']):
+        logging.info('Processing epoch #%d...' % (epoch + 1))
 
-        current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** (epoch // params['learning_rate_decay_step'])
+        for batch in tqdm(range(0, batches_per_epoch)):
+            x, y = train_set.batch()
 
-        feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
+            current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** \
+                                    (epoch // params['learning_rate_decay_step'])
 
-        if batch * params['batch_size'] % train_set.length == 0:
-            logging.info('Processing epoch #%d...' % (epoch + 1))
+            feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
 
-            _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
-            saver.save(session, model_path)
-            summary_writer.add_summary(summary, epoch)
-        else:
-            session.run([train_step], feed_dict=feed_dict)
+            if batch == 0:
+                _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
+                saver.save(session, model_path)
+                summary_writer.add_summary(summary, epoch)
+            else:
+                session.run([train_step], feed_dict=feed_dict)
 
     logging.info('Training complete.')
