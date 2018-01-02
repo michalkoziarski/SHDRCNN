@@ -25,6 +25,8 @@ class TrainingSet:
 
         if not os.path.exists(self.root_path):
             download('Training')
+            
+        logging.info('Loading Training partition...')
 
         for i in tqdm(range(1, 75)):
             image_directory = os.path.join(self.root_path, '%03d' % i)
