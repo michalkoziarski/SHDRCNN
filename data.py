@@ -13,22 +13,45 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 
 
 class TrainingSet:
-    def __init__(self, batch_size=64, patch_size=41, stride=21):
+    N_IMAGES = 74
+    N_AUGMENTATIONS = 8
+
+    def __init__(self, batch_size=64, patch_size=41, stride=21, shape=(1000, 1500)):
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.stride = stride
+        self.shape = shape
         self.images_completed = 0
         self.epochs_completed = 0
         self.root_path = os.path.join(DATA_PATH, 'Training')
-        self.ldr_images = []
-        self.hdr_images = []
 
         if not os.path.exists(self.root_path):
             download('Training')
 
         logging.info('Loading Training partition...')
 
-        for i in tqdm(range(1, 75)):
+        self.length = 0
+
+        x_start = 0
+
+        while x_start + patch_size <= shape[0]:
+            y_start = 0
+
+            while y_start + patch_size <= shape[1]:
+                self.length += 1
+
+                y_start += patch_size - stride
+
+            x_start += patch_size - stride
+
+        self.length *= self.N_IMAGES * self.N_AUGMENTATIONS
+
+        self.ldr_images = np.empty((self.length, self.patch_size, self.patch_size, 1), dtype=np.float32)
+        self.hdr_images = np.empty((self.length, self.patch_size, self.patch_size, 1), dtype=np.float32)
+
+        current_image = 0
+
+        for i in tqdm(range(1, self.N_IMAGES + 1)):
             image_directory = os.path.join(self.root_path, '%03d' % i)
             tif_names = sorted([name for name in os.listdir(image_directory) if name.endswith('.tif')])
 
@@ -41,7 +64,8 @@ class TrainingSet:
 
             assert ldr_image.dtype == 'uint16'
             assert hdr_image.dtype == 'float32'
-            assert ldr_image.shape == hdr_image.shape
+            assert ldr_image.shape[0] == hdr_image.shape[0] == shape[0]
+            assert ldr_image.shape[1] == hdr_image.shape[1] == shape[1]
 
             ldr_image = ldr_image / 65535.0
 
@@ -50,11 +74,11 @@ class TrainingSet:
 
             x_start = 0
 
-            while x_start + patch_size <= ldr_image.shape[0]:
+            while x_start + patch_size <= shape[0]:
                 x_end = x_start + patch_size
                 y_start = 0
 
-                while y_start + patch_size <= ldr_image.shape[1]:
+                while y_start + patch_size <= shape[1]:
                     y_end = y_start + patch_size
 
                     ldr_patch = ldr_image[x_start:x_end, y_start:y_end].copy()
@@ -64,8 +88,10 @@ class TrainingSet:
                         ldr_patch = np.rot90(ldr_patch)
                         hdr_patch = np.rot90(hdr_patch)
 
-                        self.ldr_images.append(ldr_patch)
-                        self.hdr_images.append(hdr_patch)
+                        self.ldr_images[current_image] = ldr_patch
+                        self.hdr_images[current_image] = hdr_patch
+
+                        current_image += 1
 
                     ldr_patch = np.fliplr(ldr_patch)
                     hdr_patch = np.fliplr(hdr_patch)
@@ -74,21 +100,16 @@ class TrainingSet:
                         ldr_patch = np.rot90(ldr_patch)
                         hdr_patch = np.rot90(hdr_patch)
 
-                        self.ldr_images.append(ldr_patch)
-                        self.hdr_images.append(hdr_patch)
+                        self.ldr_images[current_image] = ldr_patch
+                        self.hdr_images[current_image] = hdr_patch
+
+                        current_image += 1
 
                     y_start += patch_size - stride
 
                 x_start += patch_size - stride
 
-        self.ldr_images = np.array(self.ldr_images)
-        self.hdr_images = np.array(self.hdr_images)
-
         self.shuffle()
-        self.length = len(self.ldr_images)
-        self.length = self.length - self.length % batch_size
-        self.ldr_images = self.ldr_images[:self.length]
-        self.hdr_images = self.hdr_images[:self.length]
 
     def batch(self):
         ldr_images = self.ldr_images[self.images_completed:(self.images_completed + self.batch_size)]
@@ -104,7 +125,9 @@ class TrainingSet:
         return ldr_images, hdr_images
 
     def shuffle(self):
-        indices = list(range(len(self.ldr_images)))
+        logging.info('Shuffling Training partition...')
+
+        indices = np.array(range(len(self.ldr_images)))
         np.random.shuffle(indices)
 
         self.ldr_images = self.ldr_images[indices]
