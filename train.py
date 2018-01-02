@@ -2,6 +2,7 @@ import data
 import model
 import os
 import json
+import logging
 import tensorflow as tf
 
 
@@ -52,20 +53,20 @@ with tf.Session() as session:
     checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
 
     if checkpoint and checkpoint.model_checkpoint_path:
-        print('Restoring model...')
+        logging.info('Restoring model...')
 
         session.run(tf.global_variables_initializer())
         saver.restore(session, checkpoint.model_checkpoint_path)
 
-        print('Restoration complete.')
+        logging.info('Restoration complete.')
     else:
-        print('Initializing new model...')
+        logging.info('Initializing new model...')
 
         session.run(tf.global_variables_initializer())
 
-        print('Initialization complete.')
+        logging.info('Initialization complete.')
 
-    print('Training model...')
+    logging.info('Training model...')
 
     while tf.train.global_step(session, global_step) * params['batch_size'] < train_set.length * params['epochs']:
         batch = tf.train.global_step(session, global_step)
@@ -78,7 +79,7 @@ with tf.Session() as session:
         feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
 
         if batch * params['batch_size'] % train_set.length == 0:
-            print('Processing epoch #%d...' % (epoch + 1))
+            logging.info('Processing epoch #%d...' % (epoch + 1))
 
             _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
             saver.save(session, model_path)
@@ -86,4 +87,4 @@ with tf.Session() as session:
         else:
             session.run([train_step], feed_dict=feed_dict)
 
-    print('Training complete.')
+    logging.info('Training complete.')
