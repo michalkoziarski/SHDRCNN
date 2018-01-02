@@ -46,8 +46,7 @@ class TrainingSet:
 
         self.length *= self.N_IMAGES * self.N_AUGMENTATIONS
 
-        self.ldr_images = np.empty((self.length, self.patch_size, self.patch_size, 1), dtype=np.float32)
-        self.hdr_images = np.empty((self.length, self.patch_size, self.patch_size, 1), dtype=np.float32)
+        self.images = np.empty((self.length, 2, self.patch_size, self.patch_size, 1), dtype=np.float32)
 
         current_image = 0
 
@@ -88,8 +87,8 @@ class TrainingSet:
                         ldr_patch = np.rot90(ldr_patch)
                         hdr_patch = np.rot90(hdr_patch)
 
-                        self.ldr_images[current_image] = ldr_patch
-                        self.hdr_images[current_image] = hdr_patch
+                        self.images[current_image, 0] = ldr_patch
+                        self.images[current_image, 1] = hdr_patch
 
                         current_image += 1
 
@@ -100,8 +99,8 @@ class TrainingSet:
                         ldr_patch = np.rot90(ldr_patch)
                         hdr_patch = np.rot90(hdr_patch)
 
-                        self.ldr_images[current_image] = ldr_patch
-                        self.hdr_images[current_image] = hdr_patch
+                        self.images[current_image, 0] = ldr_patch
+                        self.images[current_image, 1] = hdr_patch
 
                         current_image += 1
 
@@ -112,8 +111,8 @@ class TrainingSet:
         self.shuffle()
 
     def batch(self):
-        ldr_images = self.ldr_images[self.images_completed:(self.images_completed + self.batch_size)]
-        hdr_images = self.hdr_images[self.images_completed:(self.images_completed + self.batch_size)]
+        ldr_images = self.images[self.images_completed:(self.images_completed + self.batch_size), 0]
+        hdr_images = self.images[self.images_completed:(self.images_completed + self.batch_size), 1]
 
         self.images_completed += self.batch_size
 
@@ -127,11 +126,7 @@ class TrainingSet:
     def shuffle(self):
         logging.info('Shuffling Training partition...')
 
-        indices = np.array(range(len(self.ldr_images)))
-        np.random.shuffle(indices)
-
-        self.ldr_images = self.ldr_images[indices]
-        self.hdr_images = self.hdr_images[indices]
+        np.random.shuffle(self.images)
 
 
 class TestSet:
