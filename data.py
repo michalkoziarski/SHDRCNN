@@ -1,8 +1,10 @@
 import os
 import zipfile
+import logging
 import imageio
 import numpy as np
 
+from tqdm import tqdm
 from skimage.color import rgb2gray
 from urllib.request import urlretrieve
 
@@ -24,7 +26,7 @@ class TrainingSet:
         if not os.path.exists(self.root_path):
             download('Training')
 
-        for i in range(1, 75):
+        for i in tqdm(range(1, 75)):
             image_directory = os.path.join(self.root_path, '%03d' % i)
             tif_names = sorted([name for name in os.listdir(image_directory) if name.endswith('.tif')])
 
@@ -122,9 +124,13 @@ def download(partition):
     url = 'http://cseweb.ucsd.edu/~viscomp/projects/SIG17HDR/PaperData/SIGGRAPH17_HDR_%sset.zip' % partition
 
     if not os.path.exists(zip_path):
+        logging.info('Downloading %s partition...' % partition)
+
         urlretrieve(url, zip_path)
 
     with zipfile.ZipFile(zip_path) as f:
+        logging.info('Extracting %s partition...' % partition)
+
         f.extractall(DATA_PATH)
 
 
