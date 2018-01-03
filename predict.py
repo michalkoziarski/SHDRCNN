@@ -43,6 +43,7 @@ def predict(images, session=None, network=None, targets=None):
 
     for i in range(len(images)):
         image = images[i].copy()
+        print(i)
 
         assert str(image.dtype).startswith('float') or str(image.dtype).startswith('uint')
 
@@ -51,7 +52,7 @@ def predict(images, session=None, network=None, targets=None):
         elif image.dtype == 'uint16':
             image = image / 65535.0
 
-        if len(image.shape) == 2:
+        if len(image.shape) == 3:
             image = np.expand_dims(rgb2gray(image), axis=2)
 
         prediction = network.outputs.eval(feed_dict={network.inputs: np.array([image])}, session=session)[0]
