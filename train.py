@@ -88,7 +88,7 @@ with tf.Session() as session:
 
             feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
 
-            if batch == 0:
+            if batch == batches_per_epoch - 1:
                 _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
                 saver.save(session, model_path)
                 summary_writer.add_summary(summary, epoch)
