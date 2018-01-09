@@ -85,7 +85,7 @@ with tf.Session() as session:
 
     for epoch in range(epochs_processed, params['epochs']):
         logging.info('Processing epoch #%d...' % (epoch + 1))
-        
+
         train_set.shuffle()
 
         for batch in tqdm(range(0, batches_per_epoch)):
