@@ -110,8 +110,6 @@ class TrainingSet:
 
                 x_start += patch_size - stride
 
-        self.shuffle()
-
     def batch(self):
         ldr_images = self.images[self.images_completed:(self.images_completed + self.batch_size), 0]
         hdr_images = self.images[self.images_completed:(self.images_completed + self.batch_size), 1]
