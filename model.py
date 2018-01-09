@@ -3,23 +3,24 @@ import tensorflow as tf
 
 
 class Model:
-    def __init__(self, inputs, n_layers=20, k=3, n_filters=64):
+    def __init__(self, inputs, n_layers=20, k=3, n_filters=64, n_channels=3):
         self.inputs = inputs
         self.n_layers = n_layers
         self.k = k
         self.n_filters = n_filters
+        self.n_channels = n_channels
         self.weights = []
         self.biases = []
         self.outputs = self.inputs
 
         for i in range(self.n_layers):
             if i == 0:
-                in_shape = 1
+                in_shape = self.n_channels
             else:
                 in_shape = self.n_filters
 
             if i == self.n_layers - 1:
-                out_shape = 1
+                out_shape = self.n_channels
             else:
                 out_shape = self.n_filters
 

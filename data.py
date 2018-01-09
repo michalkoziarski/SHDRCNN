@@ -16,10 +16,11 @@ class TrainingSet:
     N_IMAGES = 74
     N_AUGMENTATIONS = 8
 
-    def __init__(self, batch_size=64, patch_size=41, stride=21, shape=(1000, 1500)):
+    def __init__(self, batch_size=64, patch_size=41, stride=21, n_channels=3, shape=(1000, 1500)):
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.stride = stride
+        self.n_channels = n_channels
         self.shape = shape
         self.images_completed = 0
         self.epochs_completed = 0
@@ -46,7 +47,7 @@ class TrainingSet:
 
         self.length *= self.N_IMAGES * self.N_AUGMENTATIONS
 
-        self.images = np.empty((self.length, 2, self.patch_size, self.patch_size, 1), dtype=np.float32)
+        self.images = np.empty((self.length, 2, self.patch_size, self.patch_size, self.n_channels), dtype=np.float32)
 
         current_image = 0
 
@@ -68,8 +69,9 @@ class TrainingSet:
 
             ldr_image = ldr_image / 65535.0
 
-            ldr_image = np.expand_dims(rgb2gray(ldr_image), axis=2)
-            hdr_image = np.expand_dims(rgb2gray(hdr_image), axis=2)
+            if self.n_channels == 1:
+                ldr_image = np.expand_dims(rgb2gray(ldr_image), axis=2)
+                hdr_image = np.expand_dims(rgb2gray(hdr_image), axis=2)
 
             x_start = 0
 
@@ -119,7 +121,6 @@ class TrainingSet:
         if self.images_completed >= self.length:
             self.images_completed = 0
             self.epochs_completed += 1
-            self.shuffle()
 
         return ldr_images, hdr_images
 

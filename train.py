@@ -14,13 +14,13 @@ logging.basicConfig(level=logging.INFO)
 with open(os.path.join(os.path.dirname(__file__), 'params.json')) as f:
     params = json.load(f)
 
-train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['stride'])
+train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['stride'], params['n_channels'])
 
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
 learning_rate = tf.placeholder(tf.float32, shape=[])
 global_step = tf.Variable(0, trainable=False, name='global_step')
-network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'])
+network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'])
 base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(network.outputs, ground_truth)))
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
