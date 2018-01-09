@@ -127,6 +127,8 @@ class TrainingSet:
 
         np.random.shuffle(self.images)
 
+        self.images_completed = 0
+
 
 class TestSet:
     def __init__(self):
