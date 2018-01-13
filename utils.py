@@ -7,4 +7,8 @@ def psnr(x, y, maximum=1.0):
 
 
 def tone_mapping(x, mu=5000.0):
+    return np.log(1.0 + mu * x) / np.log(1.0 + mu)
+
+
+def tone_mapping_tf(x, mu=5000.0):
     return tf.log(1.0 + mu * x) / tf.log(1.0 + mu)

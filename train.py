@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from tqdm import tqdm
-from utils import tone_mapping
+from utils import psnr, tone_mapping, tone_mapping_tf
 
 
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +25,8 @@ network = model.Model(inputs, params['n_layers'], params['kernel_size'], params[
                       params['activation'])
 
 if params['tone_mapping']:
-    base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(tone_mapping(network.outputs), tone_mapping(ground_truth))))
+    base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(tone_mapping_tf(network.outputs),
+                                                        tone_mapping_tf(ground_truth))))
 else:
     base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(network.outputs, ground_truth)))
 
