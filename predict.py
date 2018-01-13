@@ -19,7 +19,8 @@ def load_model(session):
         params = json.load(f)
 
     inputs = tf.placeholder(tf.float32)
-    network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'])
+    network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'],
+                          params['activation'])
     checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
     saver = tf.train.Saver()
     saver.restore(session, checkpoint.model_checkpoint_path)

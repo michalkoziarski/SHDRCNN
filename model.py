@@ -3,12 +3,13 @@ import tensorflow as tf
 
 
 class Model:
-    def __init__(self, inputs, n_layers=20, k=3, n_filters=64, n_channels=3):
+    def __init__(self, inputs, n_layers=20, k=3, n_filters=64, n_channels=3, activation='relu'):
         self.inputs = inputs
         self.n_layers = n_layers
         self.k = k
         self.n_filters = n_filters
         self.n_channels = n_channels
+        self.activation = activation
         self.weights = []
         self.biases = []
         self.outputs = self.inputs
@@ -30,10 +31,18 @@ class Model:
 
             self.weights.append(weight)
             self.biases.append(bias)
-            self.outputs = tf.nn.bias_add(tf.nn.conv2d(self.outputs, weight, strides=[1, 1, 1, 1], padding='SAME'), bias)
+            self.outputs = tf.nn.bias_add(tf.nn.conv2d(self.outputs, weight, strides=[1, 1, 1, 1], padding='SAME'),
+                                          bias)
 
             if i < self.n_layers - 1:
                 self.outputs = tf.nn.relu(self.outputs)
 
         self.residual = self.outputs
         self.outputs = tf.add(self.outputs, self.inputs)
+
+        if self.activation == 'relu':
+            self.outputs = tf.minimum(tf.maximum(self.outputs, 0.0), 1.0)
+        elif self.activation == 'sigmoid':
+            self.outputs = tf.nn.sigmoid(self.outputs)
+        elif self.activation is not None:
+            raise NotImplementedError
