@@ -91,9 +91,9 @@ with tf.Session() as session:
     batches_per_epoch = int(np.ceil(train_set.length / train_set.batch_size))
 
     for epoch in range(epochs_processed, params['epochs']):
-        logging.info('Processing epoch #%d...' % (epoch + 1))
-
         train_set.shuffle()
+
+        logging.info('Processing epoch #%d...' % (epoch + 1))
 
         for batch in tqdm(range(0, batches_per_epoch - 1)):
             x, y = train_set.batch()
