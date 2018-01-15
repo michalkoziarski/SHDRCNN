@@ -95,7 +95,7 @@ with tf.Session() as session:
 
         train_set.shuffle()
 
-        for batch in tqdm(range(0, batches_per_epoch)):
+        for batch in tqdm(range(0, batches_per_epoch - 1)):
             x, y = train_set.batch()
 
             current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** \
@@ -103,19 +103,35 @@ with tf.Session() as session:
 
             feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
 
-            if batch == batches_per_epoch - 1:
-                predictions = predict(validation_set.images[:, 0], session, network)
+            session.run([train_step], feed_dict=feed_dict)
 
-                feed_dict[psnr_t] = np.mean([psnr(tone_mapping(x), tone_mapping(y))
-                                             for x, y in zip(predictions, validation_set.images[:, 1])])
-                feed_dict[psnr_l] = np.mean([psnr(x, y)
-                                             for x, y in zip(predictions, validation_set.images[:, 1])])
+        logging.info('Evaluating performance...')
 
-                _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
+        predictions = predict(validation_set.images[:, 0], session, network)
 
-                saver.save(session, model_path)
-                summary_writer.add_summary(summary, epoch)
-            else:
-                session.run([train_step], feed_dict=feed_dict)
+        epoch_psnr_t = np.mean([psnr(tone_mapping(x), tone_mapping(y))
+                                for x, y in zip(predictions, validation_set.images[:, 1])])
+        epoch_psnr_l = np.mean([psnr(x, y)
+                                for x, y in zip(predictions, validation_set.images[:, 1])])
+
+        x, y = train_set.batch()
+
+        current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** \
+                                (epoch // params['learning_rate_decay_step'])
+
+        feed_dict = {
+            inputs: x,
+            ground_truth: y,
+            learning_rate: current_learning_rate,
+            psnr_t: epoch_psnr_t,
+            psnr_l: epoch_psnr_l
+        }
+
+        _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
+
+        logging.info('Observed PSNR-T = %.2f and PSNR-L = %.2f.' % (epoch_psnr_t, epoch_psnr_l))
+
+        saver.save(session, model_path)
+        summary_writer.add_summary(summary, epoch)
 
     logging.info('Training complete.')
