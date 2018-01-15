@@ -8,9 +8,9 @@
   "patch_size": 41,
   "stride": 21,
   "n_channels": 3,
-  "learning_rate": 0.0001,
+  "learning_rate": 0.01,
   "learning_rate_decay": 0.1,
-  "learning_rate_decay_step": 5,
+  "learning_rate_decay_step": 10,
   "activation": "relu",
   "tone_mapping": true
 }

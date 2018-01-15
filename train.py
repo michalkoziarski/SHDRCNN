@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from tqdm import tqdm
+from predict import predict
 from utils import psnr, tone_mapping, tone_mapping_tf
 
 
@@ -16,19 +17,21 @@ with open(os.path.join(os.path.dirname(__file__), 'params.json')) as f:
     params = json.load(f)
 
 train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['stride'], params['n_channels'])
+validation_set = data.TestSet('EXTRA', params['n_channels'])
 
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
 learning_rate = tf.placeholder(tf.float32, shape=[])
+psnr_t = tf.placeholder(tf.float32, shape=[])
+psnr_l = tf.placeholder(tf.float32, shape=[])
 global_step = tf.Variable(0, trainable=False, name='global_step')
 network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'],
                       params['activation'])
 
 if params['tone_mapping']:
-    base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(tone_mapping_tf(network.outputs),
-                                                        tone_mapping_tf(ground_truth))))
+    base_loss = tf.losses.mean_squared_error(tone_mapping_tf(network.outputs), tone_mapping_tf(ground_truth))
 else:
-    base_loss = tf.reduce_sum(tf.nn.l2_loss(tf.subtract(network.outputs, ground_truth)))
+    base_loss = tf.losses.mean_squared_error(network.outputs, ground_truth)
 
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
@@ -37,6 +40,8 @@ tf.summary.scalar('base_loss', base_loss)
 tf.summary.scalar('weight_loss', weight_loss)
 tf.summary.scalar('total_loss', loss)
 tf.summary.scalar('learning_rate', learning_rate)
+tf.summary.scalar('psnr_t', psnr_t)
+tf.summary.scalar('psnr_l', psnr_l)
 tf.summary.image('inputs', inputs)
 tf.summary.image('outputs', network.outputs)
 tf.summary.image('ground_truth', ground_truth)
@@ -99,7 +104,15 @@ with tf.Session() as session:
             feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
 
             if batch == batches_per_epoch - 1:
+                predictions = predict(validation_set.images[:, 0], session, network)
+
+                feed_dict[psnr_t] = np.mean([psnr(tone_mapping(x), tone_mapping(y))
+                                             for x, y in zip(predictions, validation_set.images[:, 1])])
+                feed_dict[psnr_l] = np.mean([psnr(x, y)
+                                             for x, y in zip(predictions, validation_set.images[:, 1])])
+
                 _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
+
                 saver.save(session, model_path)
                 summary_writer.add_summary(summary, epoch)
             else:
