@@ -124,7 +124,7 @@ class TestSet:
         self.root_path = os.path.join(DATA_PATH, 'Test', self.portion)
 
         if not os.path.exists(self.root_path):
-            download('Training')
+            download('Test')
 
         logging.info('Loading "%s" portion of the test partition...' % self.portion.lower())
 
