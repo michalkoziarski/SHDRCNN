@@ -206,6 +206,10 @@ def _load_images(image_directory, n_channels=3, shape=(1000, 1500)):
     return ldr_image, hdr_image
 
 
+def _under_or_over_exposed(patch, min_value=0.2, max_value=0.8, threshold=0.5):
+    return np.mean((patch < min_value) | (patch > max_value)) > threshold
+
+
 if __name__ == '__main__':
     for partition in ['Training', 'Test']:
         download(partition)
