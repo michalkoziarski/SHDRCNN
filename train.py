@@ -17,7 +17,7 @@ with open(os.path.join(os.path.dirname(__file__), 'params.json')) as f:
     params = json.load(f)
 
 train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['stride'], params['n_channels'])
-validation_set = data.TestSet('EXTRA', params['n_channels'])
+validation_set = data.TestSet('ALL', params['n_channels'])
 
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
