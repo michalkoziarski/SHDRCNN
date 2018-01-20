@@ -114,35 +114,45 @@ class TrainingSet:
 
 
 class TestSet:
-    def __init__(self, portion='PAPER', n_channels=3, shape=(1000, 1500)):
-        assert portion in ['PAPER', 'EXTRA']
+    def __init__(self, portion='ALL', n_channels=3, shape=(1000, 1500)):
+        assert portion in ['ALL', 'PAPER', 'EXTRA']
 
-        self.portion = portion
+        if portion == 'ALL':
+            self.portions = ['PAPER', 'EXTRA']
+        else:
+            self.portions = [portion]
+
         self.n_channels = n_channels
         self.shape = shape
         self.images_completed = 0
-        self.root_path = os.path.join(DATA_PATH, 'Test', self.portion)
+        self.root_path = os.path.join(DATA_PATH, 'Test')
+        self.length = 0
+        self.ldr_images = []
+        self.hdr_images = []
 
         if not os.path.exists(self.root_path):
             download('Test')
 
-        logging.info('Loading "%s" portion of the test partition...' % self.portion.lower())
+        for portion in self.portions:
+            logging.info('Loading "%s" portion of the test partition...' % portion.lower())
 
-        image_directories = os.listdir(self.root_path)
+            image_directories = os.listdir(os.path.join(self.root_path, portion))
 
-        self.length = len(image_directories)
-        self.images = np.empty((self.length, 2, self.shape[0], self.shape[1], self.n_channels), dtype=np.float32)
+            self.length += len(image_directories)
 
-        for i in tqdm(range(len(image_directories))):
-            image_directory = os.path.join(self.root_path, image_directories[i])
-            ldr_image, hdr_image = _load_images(image_directory, self.n_channels, self.shape)
+            for i in tqdm(range(len(image_directories))):
+                image_directory = os.path.join(self.root_path, portion, image_directories[i])
+                ldr_image, hdr_image = _load_images(image_directory, self.n_channels, self.shape)
 
-            self.images[i][0] = ldr_image
-            self.images[i][1] = hdr_image
+                self.ldr_images.append(ldr_image)
+                self.ldr_images.append(hdr_image)
+
+        self.ldr_images = np.array(self.ldr_images, dtype=np.float32)
+        self.hdr_images = np.array(self.hdr_images, dtype=np.float32)
 
     def fetch(self):
-        ldr_image = self.images[self.images_completed, 0]
-        hdr_image = self.images[self.images_completed, 1]
+        ldr_image = self.ldr_images[self.images_completed]
+        hdr_image = self.ldr_images[self.images_completed]
 
         self.images_completed += 1
 
