@@ -16,13 +16,15 @@ class TrainingSet:
     N_IMAGES = 74
     N_AUGMENTATIONS = 8
 
-    def __init__(self, batch_size=64, patch_size=41, stride=21, n_channels=3, shape=(1000, 1500)):
+    def __init__(self, batch_size=64, patch_size=41, stride=21, n_channels=3, shape=(1000, 1500),
+                 discard_well_exposed=False):
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.stride = stride
         self.n_channels = n_channels
         self.shape = shape
         self.images_completed = 0
+        self.discard_well_exposed = discard_well_exposed
         self.epochs_completed = 0
         self.root_path = os.path.join(DATA_PATH, 'Training')
 
@@ -68,6 +70,11 @@ class TrainingSet:
                     ldr_patch = ldr_image[x_start:x_end, y_start:y_end].copy()
                     hdr_patch = hdr_image[x_start:x_end, y_start:y_end].copy()
 
+                    if self.discard_well_exposed and not _under_or_over_exposed(ldr_patch):
+                        y_start += patch_size - stride
+
+                        continue
+
                     for _ in range(4):
                         ldr_patch = np.rot90(ldr_patch)
                         hdr_patch = np.rot90(hdr_patch)
@@ -92,6 +99,10 @@ class TrainingSet:
                     y_start += patch_size - stride
 
                 x_start += patch_size - stride
+
+        if self.discard_well_exposed:
+            self.images = self.images[:current_image]
+            self.length = len(self.images)
 
     def batch(self):
         ldr_images = self.images[self.images_completed:(self.images_completed + self.batch_size), 0]
@@ -145,7 +156,7 @@ class TestSet:
                 ldr_image, hdr_image = _load_images(image_directory, self.n_channels, self.shape)
 
                 self.ldr_images.append(ldr_image)
-                self.ldr_images.append(hdr_image)
+                self.hdr_images.append(hdr_image)
 
         self.ldr_images = np.array(self.ldr_images, dtype=np.float32)
         self.hdr_images = np.array(self.hdr_images, dtype=np.float32)

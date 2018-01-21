@@ -107,12 +107,12 @@ with tf.Session() as session:
 
         logging.info('Evaluating performance...')
 
-        predictions = predict(validation_set.images[:, 0], session, network)
+        predictions = predict(validation_set.ldr_images, session, network)
 
         epoch_psnr_t = np.mean([psnr(tone_mapping(x), tone_mapping(y))
-                                for x, y in zip(predictions, validation_set.images[:, 1])])
+                                for x, y in zip(predictions, validation_set.hdr_images)])
         epoch_psnr_l = np.mean([psnr(x, y)
-                                for x, y in zip(predictions, validation_set.images[:, 1])])
+                                for x, y in zip(predictions, validation_set.hdr_images)])
 
         x, y = train_set.batch()
 
