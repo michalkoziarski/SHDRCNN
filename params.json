@@ -12,5 +12,6 @@
   "learning_rate_decay": 0.1,
   "learning_rate_decay_step": 10,
   "activation": "relu",
-  "tone_mapping": true
+  "tone_mapping": true,
+  "discard_well_exposed": false
 }
