@@ -53,7 +53,7 @@ for i in range(len(network.weights)):
     tf.summary.histogram('biases/layer_%d' % (i + 1), network.biases[i])
 
 summary_step = tf.summary.merge_all()
-saver = tf.train.Saver(max_to_keep=0)
+saver = tf.train.Saver(max_to_keep=None)
 
 optimizer = tf.train.AdamOptimizer(params['learning_rate'])
 train_step = optimizer.minimize(loss, global_step=global_step)
