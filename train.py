@@ -86,14 +86,10 @@ with tf.Session() as session:
 
         session.run(tf.global_variables_initializer())
         saver.restore(session, checkpoint.model_checkpoint_path)
-
-        logging.info('Restoration complete.')
     else:
         logging.info('Initializing new model...')
 
         session.run(tf.global_variables_initializer())
-
-        logging.info('Initialization complete.')
 
     logging.info('Training model...')
 
