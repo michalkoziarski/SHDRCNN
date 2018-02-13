@@ -20,9 +20,10 @@ train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params[
                              discard_well_exposed=params['discard_well_exposed'])
 validation_set = data.TestSet('ALL', params['n_channels'])
 
+batches_per_epoch = int(np.ceil(train_set.length / train_set.batch_size))
+
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
-learning_rate = tf.placeholder(tf.float32, shape=[])
 psnr_t = tf.placeholder(tf.float32, shape=[])
 psnr_l = tf.placeholder(tf.float32, shape=[])
 global_step = tf.Variable(0, trainable=False, name='global_step')
@@ -36,6 +37,18 @@ else:
 
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
+
+if params['learning_rate_decay'] is None or params['learning_rate_decay_step'] is None:
+    learning_rate = params['learning_rate']
+else:
+    boundaries = [step * batches_per_epoch for step in range(params['learning_rate_decay_step'],
+                                                             params['epochs'],
+                                                             params['learning_rate_decay_step'])]
+    values = [params['learning_rate'] * (params['learning_rate_decay'] ** i) for i in range(len(boundaries) + 1)]
+    learning_rate = tf.train.piecewise_constant(global_step, boundaries, values)
+
+optimizer = tf.train.AdamOptimizer(learning_rate)
+train_step = optimizer.minimize(loss, global_step=global_step)
 
 tf.summary.scalar('base_loss', base_loss)
 tf.summary.scalar('weight_loss', weight_loss)
@@ -54,9 +67,6 @@ for i in range(len(network.weights)):
 
 summary_step = tf.summary.merge_all()
 saver = tf.train.Saver(max_to_keep=None)
-
-optimizer = tf.train.AdamOptimizer(params['learning_rate'])
-train_step = optimizer.minimize(loss, global_step=global_step)
 
 checkpoint_path = os.path.join(os.path.dirname(__file__), 'model')
 model_path = os.path.join(checkpoint_path, 'model.ckpt')
@@ -89,7 +99,6 @@ with tf.Session() as session:
 
     batches_processed = tf.train.global_step(session, global_step)
     epochs_processed = int(batches_processed * params['batch_size'] / train_set.length)
-    batches_per_epoch = int(np.ceil(train_set.length / train_set.batch_size))
 
     for epoch in range(epochs_processed, params['epochs']):
         train_set.shuffle()
@@ -99,10 +108,7 @@ with tf.Session() as session:
         for batch in tqdm(range(0, batches_per_epoch - 1)):
             x, y = train_set.batch()
 
-            current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** \
-                                    (epoch // params['learning_rate_decay_step'])
-
-            feed_dict = {inputs: x, ground_truth: y, learning_rate: current_learning_rate}
+            feed_dict = {inputs: x, ground_truth: y}
 
             session.run([train_step], feed_dict=feed_dict)
 
@@ -117,13 +123,9 @@ with tf.Session() as session:
 
         x, y = train_set.batch()
 
-        current_learning_rate = params['learning_rate'] * params['learning_rate_decay'] ** \
-                                (epoch // params['learning_rate_decay_step'])
-
         feed_dict = {
             inputs: x,
             ground_truth: y,
-            learning_rate: current_learning_rate,
             psnr_t: epoch_psnr_t,
             psnr_l: epoch_psnr_l
         }
