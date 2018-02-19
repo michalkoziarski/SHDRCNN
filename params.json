@@ -2,16 +2,16 @@
   "n_layers": 20,
   "kernel_size": 3,
   "n_filters": 64,
-  "epochs": 60,
+  "epochs": 100,
   "weight_decay": 0.0,
   "batch_size": 64,
   "patch_size": 41,
   "stride": 21,
   "n_channels": 3,
   "learning_rate": 0.00001,
-  "learning_rate_decay": 0.1,
-  "learning_rate_decay_step": 10,
+  "learning_rate_decay": null,
+  "learning_rate_decay_step": null,
   "activation": "relu",
   "tone_mapping": true,
-  "discard_well_exposed": false
+  "discard_well_exposed": true
 }
