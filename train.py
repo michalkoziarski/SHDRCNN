@@ -130,7 +130,7 @@ with tf.Session() as session:
 
         logging.info('Observed PSNR-T = %.2f and PSNR-L = %.2f.' % (epoch_psnr_t, epoch_psnr_l))
 
-        saver.save(session, model_path)
+        saver.save(session, model_path, global_step=epoch)
         summary_writer.add_summary(summary, epoch)
 
     logging.info('Training complete.')
