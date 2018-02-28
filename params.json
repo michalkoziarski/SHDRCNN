@@ -11,7 +11,8 @@
   "learning_rate": 0.00001,
   "learning_rate_decay": null,
   "learning_rate_decay_step": null,
-  "activation": "relu",
+  "inner_activation": "tanh",
+  "outer_activation": "sigmoid",
   "tone_mapping": true,
   "discard_well_exposed": true
 }

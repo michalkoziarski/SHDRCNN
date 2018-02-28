@@ -3,13 +3,15 @@ import tensorflow as tf
 
 
 class Model:
-    def __init__(self, inputs, n_layers=20, k=3, n_filters=64, n_channels=3, activation='relu'):
+    def __init__(self, inputs, n_layers=20, k=3, n_filters=64, n_channels=3, inner_activation='tanh',
+                 outer_activation='sigmoid'):
         self.inputs = inputs
         self.n_layers = n_layers
         self.k = k
         self.n_filters = n_filters
         self.n_channels = n_channels
-        self.activation = activation
+        self.inner_activation = inner_activation
+        self.outer_activation = outer_activation
         self.weights = []
         self.biases = []
         self.outputs = self.inputs
@@ -35,14 +37,19 @@ class Model:
                                           bias)
 
             if i < self.n_layers - 1:
-                self.outputs = tf.nn.relu(self.outputs)
+                if self.inner_activation == 'relu':
+                    self.outputs = tf.nn.relu(self.outputs)
+                elif self.inner_activation == 'tanh':
+                    self.outputs = tf.nn.tanh(self.outputs)
+                else:
+                    raise NotImplementedError
 
         self.residual = self.outputs
         self.outputs = tf.add(self.outputs, self.inputs)
 
-        if self.activation == 'relu':
+        if self.outer_activation == 'relu':
             self.outputs = tf.minimum(tf.maximum(self.outputs, 0.0), 1.0)
-        elif self.activation == 'sigmoid':
+        elif self.outer_activation == 'sigmoid':
             self.outputs = tf.nn.sigmoid(self.outputs)
-        elif self.activation is not None:
+        elif self.outer_activation is not None:
             raise NotImplementedError

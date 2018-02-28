@@ -28,7 +28,7 @@ psnr_t = tf.placeholder(tf.float32, shape=[])
 psnr_l = tf.placeholder(tf.float32, shape=[])
 global_step = tf.Variable(0, trainable=False, name='global_step')
 network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'],
-                      params['activation'])
+                      params['inner_activation'], params['outer_activation'])
 
 if params['tone_mapping']:
     base_loss = tf.losses.mean_squared_error(tone_mapping_tf(network.outputs), tone_mapping_tf(ground_truth))
