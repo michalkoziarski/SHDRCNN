@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('-name', type=str, required=True)
 parser.add_argument('-n_layers', type=int, default=20)
 parser.add_argument('-kernel_size', type=int, default=3)
 parser.add_argument('-n_filters', type=int, default=64)
@@ -87,13 +88,18 @@ for i in range(len(network.weights)):
 summary_step = tf.summary.merge_all()
 saver = tf.train.Saver(max_to_keep=None)
 
-checkpoint_path = os.path.join(os.path.dirname(__file__), 'model')
+root_models_path = os.path.join(os.path.dirname(__file__), 'models')
+root_logs_path = os.path.join(os.path.dirname(__file__), 'logs')
+root_params_path = os.path.join(os.path.dirname(__file__), 'params')
+root_results_path = os.path.join(os.path.dirname(__file__), 'results')
+
+checkpoint_path = os.path.join(root_models_path, params['name'])
 model_path = os.path.join(checkpoint_path, 'model.ckpt')
-log_path = os.path.join(os.path.dirname(__file__), 'log')
+log_path = os.path.join(root_logs_path, params['name'])
 
 summary_writer = tf.summary.FileWriter(log_path)
 
-for path in [checkpoint_path, log_path]:
+for path in [root_models_path, root_logs_path, root_params_path, root_results_path, checkpoint_path, log_path]:
     if not os.path.exists(path):
         os.mkdir(path)
 
@@ -109,6 +115,11 @@ with tf.Session() as session:
         logging.info('Initializing new model...')
 
         session.run(tf.global_variables_initializer())
+
+        logging.info('Saving parameters...')
+
+        with open(os.path.join(root_params_path, '%s.json' % params['name']), 'w') as f:
+            json.dump(params, f)
 
     logging.info('Training model...')
 
@@ -153,3 +164,8 @@ with tf.Session() as session:
         summary_writer.add_summary(summary, epoch)
 
     logging.info('Training complete.')
+
+    with open(os.path.join(root_results_path, '%s.json' % params['name']), 'w') as f:
+        logging.info('Saving results...')
+
+        json.dump({'psnr-t': epoch_psnr_t, 'psnr-l': epoch_psnr_l}, f)
