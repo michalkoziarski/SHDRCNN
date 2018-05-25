@@ -1,3 +1,4 @@
+import argparse
 import data
 import model
 import os
@@ -13,8 +14,26 @@ from utils import psnr, tone_mapping, tone_mapping_tf
 
 logging.basicConfig(level=logging.INFO)
 
-with open(os.path.join(os.path.dirname(__file__), 'params.json')) as f:
-    params = json.load(f)
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-n_layers', type=int, default=20)
+parser.add_argument('-kernel_size', type=int, default=3)
+parser.add_argument('-n_filters', type=int, default=64)
+parser.add_argument('-epochs', type=int, default=20)
+parser.add_argument('-weight_decay', type=float, default=0.0005)
+parser.add_argument('-batch_size', type=int, default=64)
+parser.add_argument('-patch_size', type=int, default=41)
+parser.add_argument('-stride', type=int, default=21)
+parser.add_argument('-n_channels', type=int, default=3)
+parser.add_argument('-learning_rate', type=float, default=0.00001)
+parser.add_argument('-learning_rate_decay', type=float, default=None)
+parser.add_argument('-learning_rate_decay_step', type=int, default=None)
+parser.add_argument('-inner_activation', type=str, default='tanh')
+parser.add_argument('-outer_activation', type=str, default='sigmoid')
+parser.add_argument('-tone_mapping', type=bool, default=True)
+parser.add_argument('-discard_well_exposed', type=bool, default=True)
+
+params = vars(parser.parse_args())
 
 train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['stride'], params['n_channels'],
                              discard_well_exposed=params['discard_well_exposed'])
