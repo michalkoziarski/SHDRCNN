@@ -33,6 +33,7 @@ parser.add_argument('-inner_activation', type=str, default='tanh')
 parser.add_argument('-outer_activation', type=str, default='sigmoid')
 parser.add_argument('-tone_mapping', type=bool, default=True)
 parser.add_argument('-discard_well_exposed', type=bool, default=True)
+parser.add_argument('-multi_stream', type=bool, default=False)
 
 params = vars(parser.parse_args())
 
@@ -47,6 +48,10 @@ ground_truth = tf.placeholder(tf.float32)
 psnr_t = tf.placeholder(tf.float32, shape=[])
 psnr_l = tf.placeholder(tf.float32, shape=[])
 global_step = tf.Variable(0, trainable=False, name='global_step')
+
+if params['multi_stream']:
+    params['n_layers'] = [5, 10, 15, 20, 25, 30]
+
 network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'],
                       params['inner_activation'], params['outer_activation'])
 
