@@ -55,8 +55,6 @@ class Model:
 
             self.outputs = tf.add(self.outputs, stream_output)
 
-        self.residual = self.outputs
-
         if self.outer_activation == 'relu':
             self.outputs = tf.minimum(tf.maximum(self.outputs, 0.0), 1.0)
         elif self.outer_activation == 'sigmoid':
