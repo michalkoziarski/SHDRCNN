@@ -24,7 +24,8 @@ parser.add_argument('-epochs', type=int, default=15)
 parser.add_argument('-weight_decay', type=float, default=0.0005)
 parser.add_argument('-batch_size', type=int, default=64)
 parser.add_argument('-patch_size', type=int, default=41)
-parser.add_argument('-stride', type=int, default=21)
+parser.add_argument('-region_size', type=int, default=100)
+parser.add_argument('-stride', type=int, default=50)
 parser.add_argument('-n_channels', type=int, default=3)
 parser.add_argument('-learning_rate', type=float, default=0.00001)
 parser.add_argument('-learning_rate_decay', type=float, default=0.5)
@@ -37,8 +38,8 @@ parser.add_argument('-multi_stream', type=bool, default=False)
 
 params = vars(parser.parse_args())
 
-train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['stride'], params['n_channels'],
-                             discard_well_exposed=params['discard_well_exposed'])
+train_set = data.TrainingSet(params['batch_size'], params['patch_size'], params['region_size'], params['stride'],
+                             params['n_channels'], discard_well_exposed=params['discard_well_exposed'])
 validation_set = data.TestSet('ALL', params['n_channels'])
 
 batches_per_epoch = int(np.ceil(train_set.length / train_set.batch_size))
