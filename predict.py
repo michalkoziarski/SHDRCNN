@@ -10,12 +10,12 @@ import tensorflow as tf
 from skimage.color import rgb2gray
 
 
-def load_model(session):
-    checkpoint_path = os.path.join(os.path.dirname(__file__), 'model')
+def load_model(name, session):
+    checkpoint_path = os.path.join(os.path.dirname(__file__), 'models', name)
 
     assert os.path.exists(checkpoint_path)
 
-    with open(os.path.join(os.path.dirname(__file__), 'params.json')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'params', '%s.json' % name)) as f:
         params = json.load(f)
 
     inputs = tf.placeholder(tf.float32)
@@ -28,14 +28,14 @@ def load_model(session):
     return network
 
 
-def predict(images, session=None, network=None, targets=None):
+def predict(images, model_name, session=None, network=None, targets=None):
     session_passed = session is not None
 
     if not session_passed:
         session = tf.Session()
 
     if network is None:
-        network = load_model(session)
+        network = load_model(model_name, session)
 
     predictions = []
 
@@ -82,13 +82,16 @@ def predict(images, session=None, network=None, targets=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
     parser.add_argument('-in', help='a path of the input image or a directory of the input images', required=True)
     parser.add_argument('-out', help='a path for the output image or a directory for the output images', required=True)
+    parser.add_argument('-model', help='a name of the trained model that will be used during prediction', required=True)
+
     args = vars(parser.parse_args())
 
     if os.path.isfile(args['in']):
         image = imageio.imread(args['in'])
-        prediction = predict([image])[0]
+        prediction = predict([image], args['model'])[0]
         imageio.imwrite(args['out'], prediction)
     elif os.path.isdir(args['in']):
         images = []
@@ -98,7 +101,7 @@ if __name__ == '__main__':
             images.append(imageio.imread(os.path.join(args['in'], file_name)))
             file_names.append(file_name)
 
-        predictions = predict(images)
+        predictions = predict(images, args['model'])
 
         if not os.path.exists(args['out']):
             os.mkdir(args['out'])
