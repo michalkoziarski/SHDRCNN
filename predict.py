@@ -1,4 +1,3 @@
-import model
 import utils
 import os
 import json
@@ -7,6 +6,7 @@ import imageio
 import numpy as np
 import tensorflow as tf
 
+from model import Model
 from skimage.color import rgb2gray
 
 
@@ -19,8 +19,8 @@ def load_model(name, session):
         params = json.load(f)
 
     inputs = tf.placeholder(tf.float32)
-    network = model.Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'],
-                          params['inner_activation'], params['outer_activation'])
+    network = Model(inputs, params['n_layers'], params['kernel_size'], params['n_filters'], params['n_channels'],
+                    params['inner_activation'], params['outer_activation'])
     checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
     saver = tf.train.Saver()
     saver.restore(session, checkpoint.model_checkpoint_path)
@@ -28,14 +28,14 @@ def load_model(name, session):
     return network
 
 
-def predict(images, model_name, session=None, network=None, targets=None):
+def predict(images, session=None, model=None, model_name=None, targets=None):
     session_passed = session is not None
 
     if not session_passed:
         session = tf.Session()
 
-    if network is None:
-        network = load_model(model_name, session)
+    if model is None:
+        model = load_model(model_name, session)
 
     predictions = []
 
@@ -55,7 +55,7 @@ def predict(images, model_name, session=None, network=None, targets=None):
         if len(image.shape) == 2:
             image = np.expand_dims(rgb2gray(image), axis=2)
 
-        prediction = network.outputs.eval(feed_dict={network.inputs: np.array([image])}, session=session)[0]
+        prediction = model.outputs.eval(feed_dict={model.inputs: np.array([image])}, session=session)[0]
 
         if targets is not None:
             target = targets[i].copy()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     if os.path.isfile(args['in']):
         image = imageio.imread(args['in'])
-        prediction = predict([image], args['model'])[0]
+        prediction = predict([image], model_name=args['model'])[0]
         imageio.imwrite(args['out'], prediction)
     elif os.path.isdir(args['in']):
         images = []
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             images.append(imageio.imread(os.path.join(args['in'], file_name)))
             file_names.append(file_name)
 
-        predictions = predict(images, args['model'])
+        predictions = predict(images, model_name=args['model'])
 
         if not os.path.exists(args['out']):
             os.mkdir(args['out'])
