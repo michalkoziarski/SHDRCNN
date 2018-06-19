@@ -88,7 +88,7 @@ for i in range(len(network.weights)):
     tf.summary.histogram('biases/layer_%d' % (i + 1), network.biases[i])
 
 summary_step = tf.summary.merge_all()
-saver = tf.train.Saver(max_to_keep=None)
+saver = tf.train.Saver(max_to_keep=1)
 
 root_models_path = os.path.join(os.path.dirname(__file__), 'models')
 root_logs_path = os.path.join(os.path.dirname(__file__), 'logs')
